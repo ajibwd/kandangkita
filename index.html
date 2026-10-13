@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KANDANG KITA — Input Pengambilan KOHE</title>
+<link rel="icon" type="image/x-icon" href="assets/favicon_io/favicon.ico">
+<link rel="apple-touch-icon" href="assets/favicon_io/apple-touch-icon.png">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+    body { font-family: 'Inter', sans-serif; }
+    .font-mono-num { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    .modal-enter { animation: modalEnter 0.18s ease-out; }
+    @keyframes modalEnter {
+        0%   { opacity:0; transform:translateY(4px); }
+        100% { opacity:1; transform:translateY(0); }
+    }
+    .alert-enter { animation: alertEnter 0.15s ease-out; }
+    @keyframes alertEnter {
+        0%   { opacity:0; transform:translateY(-2px); }
+        100% { opacity:1; transform:translateY(0); }
+    }
+    .gps-dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:#94a3b8; transition:background .3s; }
+    .gps-dot.ok   { background:#10b981; box-shadow:0 0 0 3px rgba(16,185,129,.2); }
+    .gps-dot.err  { background:#ef4444; }
+    .gps-dot.wait { background:#f59e0b; animation:gpsPulse 1s ease-in-out infinite alternate; }
+    @keyframes gpsPulse { 0%{opacity:.4} 100%{opacity:1} }
+</style>
+</head>
+<body class="bg-slate-50 min-h-screen antialiased">
+
+<!-- Header -->
+<header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-20">
+    <div class="max-w-xl mx-auto px-4 py-3 flex items-center justify-center">
+        <div class="bg-white rounded-lg px-4 py-2 shrink-0">
+            <img src="assets/header_2.png" alt="Kandang Kita" class="h-12 w-auto">
+        </div>
+    </div>
+</header>
+
+<nav class="max-w-xl mx-auto px-4 pt-4">
+    <span class="block w-full text-center bg-slate-900 text-white font-semibold py-2 rounded-lg text-sm">Input Petugas Pengambilan</span>
+</nav>
+
+<main class="max-w-xl mx-auto px-4 py-5 pb-14">
+    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-200">
+            <h2 class="text-slate-900 font-semibold text-sm">Form Pengambilan KOHE</h2>
+            <p class="text-slate-500 text-xs mt-0.5">Lengkapi seluruh data sebelum menyimpan</p>
+        </div>
+
+        <form id="formKohe" class="p-5 space-y-4" novalidate>
+
+            <!-- Tanggal -->
+            <div>
+                <label for="tanggal" class="block text-xs font-medium text-slate-600 mb-1.5">Tanggal Pengambilan</label>
+                <input type="date" id="tanggal" name="tanggal" required
+                    class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 font-mono-num focus:outline-none focus:ring-2 focus:ring-emerald-700/15 focus:border-emerald-700 transition-colors">
+            </div>
+
+            <!-- Nama Petugas -->
+            <div>
+                <label for="nama_petugas" class="block text-xs font-medium text-slate-600 mb-1.5">Nama Petugas</label>
+                <input type="text" id="nama_petugas" name="nama_petugas" placeholder="Contoh: Budi Santoso" required maxlength="100"
+                    class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-700/15 focus:border-emerald-700 transition-colors">
+            </div>
+
+            <!-- Jenis Pengambilan -->
+            <div>
+                <label for="jenis_pengambilan" class="block text-xs font-medium text-slate-600 mb-1.5">Jenis Pengambilan</label>
+                <select id="jenis_pengambilan" name="jenis_pengambilan" required
+                    class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-700/15 focus:border-emerald-700 transition-colors">
+                    <option value="" disabled selected>Pilih jenis pengambilan&hellip;</option>
+                    <option value="PAIL">PAIL</option>
+                    <option value="Bersih Kandang">Bersih Kandang</option>
+                </select>
+            </div>
+
+            <!-- Jenis Kendaraan -->
+            <div>
+                <label for="jenis_kendaraan" class="block text-xs font-medium text-slate-600 mb-1.5">Jenis Kendaraan Pengangkut</label>
+                <select id="jenis_kendaraan" name="jenis_kendaraan" required
+                    class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-700/15 focus:border-emerald-700 transition-colors">
+                    <option value="" disabled selected>Pilih kendaraan&hellip;</option>
+                    <option value="Tosa Kuning" data-tare="450">Tosa Kuning &mdash; tare 450 KG</option>
+                    <option value="Tosa Hijau"  data-tare="425">Tosa Hijau &mdash; tare 425 KG</option>
+                </select>
+            </div>
+
+            <!-- Jumlah Ember -->
+            <div>
+                <label for="jumlah_ember" class="block text-xs font-medium text-slate-600 mb-1.5">
+                    Jumlah Wadah / Ember PAIL
+                    <span class="text-slate-400 font-normal">(opsional)</span>
+                </label>
+                <input type="number" id="jumlah_ember" name="jumlah_ember" min="0" step="1" placeholder="0"
+                    class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 font-mono-num placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-700/15 focus:border-emerald-700 transition-colors">
+                <p class="text-[11px] text-slate-400 mt-1">Isi jumlah ember/wadah yang digunakan. Kosongkan jika tidak relevan.</p>
+            </div>
+
+            <!-- Tonase & Satuan -->
+            <div class="grid grid-cols-3 gap-3">
+                <div class="col-span-2">
+                    <label for="tonase" class="block text-xs font-medium text-slate-600 mb-1.5">Tonase Kotor (hasil timbangan)</label>
+                    <input type="number" id="tonase" name="tonase" step="0.01" min="0.01" placeholder="0.00" required
+                        class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 font-mono-num placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-700/15 focus:border-emerald-700 transition-colors">
+                </div>
+                <div>
+                    <label for="satuan" class="block text-xs font-medium text-slate-600 mb-1.5">Satuan</label>
+                    <select id="satuan" name="satuan" required
+                        class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-700/15 focus:border-emerald-700 transition-colors">
+                        <option value="KG">KG</option>
+                        <option value="TON">TON</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Preview kalkulasi -->
+            <div id="previewHitung" class="hidden rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-xs">
+                <p class="text-slate-500 font-medium uppercase tracking-wider mb-2">Estimasi Kalkulasi</p>
+                <div class="space-y-1 font-mono-num">
+                    <div class="flex justify-between text-slate-600">
+                        <span>Berat kotor timbangan</span>
+                        <span id="previewKotor">— KG</span>
+                    </div>
+                    <div class="flex justify-between text-slate-500">
+                        <span id="previewTareLabel">Tare kendaraan</span>
+                        <span id="previewTare" class="text-red-500">— KG</span>
+                    </div>
+                    <div class="border-t border-slate-200 pt-1 mt-1 flex justify-between font-semibold text-slate-900">
+                        <span>Berat bersih KOHE</span>
+                        <span id="previewBersih" class="text-emerald-700">— KG</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Foto Dokumentasi -->
+            <div>
+                <div class="flex items-center justify-between mb-1.5">
+                    <label class="block text-xs font-medium text-slate-600">Foto Dokumentasi</label>
+                    <div class="flex items-center gap-1.5 text-[11px]">
+                        <span class="gps-dot wait" id="gpsDot"></span>
+                        <span id="gpsText" class="text-slate-500 font-mono-num">Menunggu GPS…</span>
+                    </div>
+                </div>
+                <label for="foto" id="fotoDropZone"
+                    class="flex items-center gap-3 w-full rounded-lg border border-dashed border-slate-300 px-3.5 py-3 cursor-pointer hover:border-emerald-600/40 hover:bg-slate-50 transition-colors">
+                    <span class="w-9 h-9 rounded-md bg-slate-100 flex items-center justify-center shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-500">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                            <circle cx="12" cy="13" r="4"></circle>
+                        </svg>
+                    </span>
+                    <span class="text-sm flex-1">
+                        <span id="fotoLabel" class="text-slate-700 font-medium">Ambil Foto Kamera&hellip;</span>
+                        <span class="block text-[11px] text-slate-400 mt-0.5">Kamera diutamakan &bull; JPG/PNG/WEBP &bull; maks 15 MB &bull; Stamp otomatis</span>
+                    </span>
+                    <input type="file" id="foto" name="foto" accept="image/*" capture="environment" class="hidden">
+                </label>
+
+                <canvas id="stampCanvas" class="hidden" aria-hidden="true"></canvas>
+
+                <div id="stampStatus" class="hidden mt-1.5 px-3 py-1.5 rounded-md bg-blue-50 border border-blue-200">
+                    <p class="text-[11px] text-blue-700 font-mono-num" id="stampStatusText">Memproses stamp…</p>
+                </div>
+
+                <div id="previewWrap" class="hidden mt-3 relative rounded-lg overflow-hidden border border-slate-200">
+                    <img id="previewFoto" class="w-full max-h-72 object-cover" alt="Preview foto dengan stamp">
+                    <div class="absolute top-2 left-2">
+                        <span id="stampBadge" class="hidden inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-700 text-white text-[10px] font-semibold shadow">
+                            <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            STAMP AKTIF
+                        </span>
+                    </div>
+                    <div class="absolute top-2 right-2">
+                        <button type="button" id="btnHapusFoto"
+                            class="px-2.5 py-1 rounded-full bg-red-600/90 hover:bg-red-700 text-white text-[10px] font-semibold shadow transition-colors">
+                            ✕ Hapus
+                        </button>
+                    </div>
+                </div>
+
+                <div id="coordInfo" class="hidden mt-1.5 px-3 py-2 rounded-md bg-emerald-50 border border-emerald-200">
+                    <p class="text-[11px] text-emerald-800 font-mono-num" id="coordText"></p>
+                </div>
+
+                <div id="fotoWarning" class="hidden mt-1.5 px-3 py-2 rounded-md bg-amber-50 border border-amber-200">
+                    <p class="text-[11px] text-amber-800" id="fotoWarningText"></p>
+                </div>
+            </div>
+
+            <!-- Alert -->
+            <div id="formAlert" class="hidden rounded-lg px-3.5 py-2.5 text-sm"></div>
+
+            <!-- Submit -->
+            <button type="submit" id="btnSimpan"
+                class="w-full bg-emerald-800 hover:bg-emerald-900 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold text-sm py-3 rounded-lg transition-colors flex items-center justify-center gap-2 tracking-wide">
+                <svg id="btnSimpanIcon" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                    <polyline points="7 3 7 8 15 8"></polyline>
+                </svg>
+                <span id="btnSimpanText">SIMPAN DATA</span>
+            </button>
+        </form>
+    </div>
+    <p class="text-center text-[11px] text-slate-400 mt-5 font-mono-num">KANDANG KITA &middot; SISTEM PENCATATAN KOHE</p>
+</main>
+
+<!-- Modal Sukses -->
+<div id="modalSukses" class="hidden fixed inset-0 bg-slate-900/40 z-50 flex items-center justify-center px-4">
+    <div class="bg-white rounded-xl border border-slate-200 max-w-sm w-full p-6 text-center modal-enter">
+        <div class="mx-auto w-12 h-12 bg-emerald-50 border border-emerald-200 rounded-full flex items-center justify-center mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+        </div>
+        <h3 class="text-base font-semibold text-slate-900">Data Berhasil Disimpan</h3>
+        <p id="modalSuksesMsg" class="text-sm text-slate-500 mt-1.5">Catatan pengambilan KOHE telah tersimpan.</p>
+        <div class="flex gap-2 mt-5">
+            <button id="btnTambahLagi" class="flex-1 bg-emerald-800 hover:bg-emerald-900 text-white font-medium text-sm py-2.5 rounded-lg transition-colors">Input Lagi</button>
+            <a href="laporan.html" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-sm py-2.5 rounded-lg transition-colors text-center">Lihat Laporan</a>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    // ── Konfigurasi ──────────────────────────────────────────────────────
+    const STORAGE_KEY        = 'kandangkita_data';
+    const MAX_FOTO_AGE_MENIT = 10;
+    const GPS_TIMEOUT_MS     = 15000;
+    const JPEG_QUALITY       = 0.88;
+
+    // ── Helpers data ─────────────────────────────────────────────────────
+    function loadData() {
+        try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+        catch { return []; }
+    }
+    function saveData(arr) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+    }
+    function genId() {
+        const now = new Date();
+        const pad = (n, l=2) => String(n).padStart(l, '0');
+        const ts = [now.getFullYear(), pad(now.getMonth()+1), pad(now.getDate()),
+                    pad(now.getHours()), pad(now.getMinutes()), pad(now.getSeconds())].join('');
+        const hex = Math.floor(Math.random() * 0xffffff).toString(16).padStart(6,'0');
+        return ts + '-' + hex;
+    }
+    function toKg(tonase, satuan) {
+        return satuan === 'TON' ? tonase * 1000 : tonase;
+    }
+    function fmtNum(num, des = 0) {
+        return new Intl.NumberFormat('id-ID', { minimumFractionDigits: des, maximumFractionDigits: des }).format(num);
+    }
+
+    // ── DOM refs ─────────────────────────────────────────────────────────
+    const form            = document.getElementById('formKohe');
+    const fotoInput       = document.getElementById('foto');
+    const fotoLabel       = document.getElementById('fotoLabel');
+    const stampCanvas     = document.getElementById('stampCanvas');
+    const stampStatus     = document.getElementById('stampStatus');
+    const stampStatusText = document.getElementById('stampStatusText');
+    const previewWrap     = document.getElementById('previewWrap');
+    const previewFoto     = document.getElementById('previewFoto');
+    const stampBadge      = document.getElementById('stampBadge');
+    const btnHapusFoto    = document.getElementById('btnHapusFoto');
+    const coordInfo       = document.getElementById('coordInfo');
+    const coordText       = document.getElementById('coordText');
+    const fotoWarning     = document.getElementById('fotoWarning');
+    const fotoWarningText = document.getElementById('fotoWarningText');
+    const formAlert       = document.getElementById('formAlert');
+    const btnSimpan       = document.getElementById('btnSimpan');
+    const btnSimpanText   = document.getElementById('btnSimpanText');
+    const btnSimpanIcon   = document.getElementById('btnSimpanIcon');
+    const modalSukses     = document.getElementById('modalSukses');
+    const modalSuksesMsg  = document.getElementById('modalSuksesMsg');
+    const btnTambahLagi   = document.getElementById('btnTambahLagi');
+    const gpsDot          = document.getElementById('gpsDot');
+    const gpsText         = document.getElementById('gpsText');
+    const tanggalInput    = document.getElementById('tanggal');
+    const petugasInput    = document.getElementById('nama_petugas');
+    const jenisSelect     = document.getElementById('jenis_pengambilan');
+    const kendaraanSel    = document.getElementById('jenis_kendaraan');
+    const tonaseInput     = document.getElementById('tonase');
+    const satuanSel       = document.getElementById('satuan');
+    const previewHitung   = document.getElementById('previewHitung');
+    const previewKotor    = document.getElementById('previewKotor');
+    const previewTare     = document.getElementById('previewTare');
+    const previewTareLabel= document.getElementById('previewTareLabel');
+    const previewBersih   = document.getElementById('previewBersih');
+
+    // ── State ────────────────────────────────────────────────────────────
+    let gpsCoords    = null;
+    let stampedBlob  = null;
+    let originalFile = null;
+    let stampedB64   = null;  // base64 foto untuk disimpan ke localStorage
+
+    // ── Set tanggal hari ini ─────────────────────────────────────────────
+    const today = new Date();
+    const todayStr = today.getFullYear() + '-' +
+        String(today.getMonth()+1).padStart(2,'0') + '-' +
+        String(today.getDate()).padStart(2,'0');
+    tanggalInput.value = todayStr;
+
+    // ── GPS ──────────────────────────────────────────────────────────────
+    function setGpsStatus(state, msg) {
+        gpsDot.className    = 'gps-dot ' + state;
+        gpsText.textContent = msg;
+    }
+    function initGPS() {
+        if (!('geolocation' in navigator)) { setGpsStatus('err', 'GPS tidak didukung'); return; }
+        setGpsStatus('wait', 'Mendapatkan lokasi…');
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                gpsCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude, acc: Math.round(pos.coords.accuracy) };
+                setGpsStatus('ok', gpsCoords.lat.toFixed(5) + ', ' + gpsCoords.lng.toFixed(5) + ' ±' + gpsCoords.acc + 'm');
+                if (originalFile) prosesStamp(originalFile);
+            },
+            (err) => {
+                const msg = err.code === 1 ? 'Izin lokasi ditolak' : err.code === 2 ? 'Lokasi tidak tersedia' : 'Timeout GPS';
+                setGpsStatus('err', msg);
+                gpsCoords = null;
+            },
+            { enableHighAccuracy: true, timeout: GPS_TIMEOUT_MS, maximumAge: 60000 }
+        );
+    }
+
+    // ── Preview kalkulasi ────────────────────────────────────────────────
+    function updatePreview() {
+        const tv  = parseFloat(tonaseInput.value);
+        const sv  = satuanSel.value;
+        const opt = kendaraanSel.options[kendaraanSel.selectedIndex];
+        const tare= opt ? parseInt(opt.dataset.tare || '0', 10) : 0;
+        const knd = opt && opt.value ? opt.value : '';
+        if (!tv || tv <= 0 || !knd) { previewHitung.classList.add('hidden'); return; }
+        const kotor  = sv === 'TON' ? tv * 1000 : tv;
+        const bersih = kotor - tare;
+        previewKotor.textContent     = fmtNum(kotor, 2) + ' KG';
+        previewTareLabel.textContent = 'Tare ' + knd;
+        previewTare.textContent      = '− ' + fmtNum(tare, 0) + ' KG';
+        previewBersih.textContent    = bersih <= 0 ? '⚠ Tidak valid' : fmtNum(bersih, 2) + ' KG';
+        previewBersih.className      = bersih <= 0 ? 'text-red-600 font-semibold' : 'text-emerald-700 font-semibold';
+        previewHitung.classList.remove('hidden');
+    }
+    kendaraanSel.addEventListener('change', updatePreview);
+    tonaseInput.addEventListener('input',   updatePreview);
+    satuanSel.addEventListener('change',    updatePreview);
+
+    // ── Heuristik umur foto ──────────────────────────────────────────────
+    function cekUmurFoto(file) {
+        const ageMen = (Date.now() - file.lastModified) / 60000;
+        return { valid: ageMen <= MAX_FOTO_AGE_MENIT, ageMen: Math.round(ageMen) };
+    }
+
+    // ── Canvas Stamp ─────────────────────────────────────────────────────
+    function stampGambar(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onerror = () => reject(new Error('FileReader gagal'));
+            reader.onload  = (ev) => {
+                const img = new Image();
+                img.onerror = () => reject(new Error('Image load gagal'));
+                img.onload  = () => {
+                    try {
+                        const W     = img.naturalWidth  || 1280;
+                        const H     = img.naturalHeight || 960;
+                        const bandH = Math.max(76, Math.round(H * 0.13));
+                        const pad   = Math.max(8, Math.round(W * 0.022));
+                        const fs    = Math.max(10, Math.round(W * 0.022));
+                        const lineH = Math.round((bandH - pad) / 4.2);
+
+                        stampCanvas.width  = W;
+                        stampCanvas.height = H + bandH;
+                        const ctx = stampCanvas.getContext('2d');
+
+                        ctx.drawImage(img, 0, 0, W, H);
+                        ctx.fillStyle = 'rgba(15, 23, 42, 0.93)';
+                        ctx.fillRect(0, H, W, bandH);
+                        ctx.fillStyle = '#059669';
+                        ctx.fillRect(0, H, W, 3);
+
+                        const now    = new Date();
+                        const tsStr  = now.toLocaleString('id-ID', {
+                            day:'2-digit', month:'2-digit', year:'numeric',
+                            hour:'2-digit', minute:'2-digit', second:'2-digit', hour12: false
+                        });
+                        const isoTs  = now.toISOString();
+                        const latLng = gpsCoords
+                            ? gpsCoords.lat.toFixed(6) + ', ' + gpsCoords.lng.toFixed(6) + '  ±' + gpsCoords.acc + 'm'
+                            : 'GPS tidak tersedia';
+                        const petugas = petugasInput.value.trim() || '—';
+                        const jenis   = jenisSelect.value         || '—';
+                        const armada  = kendaraanSel.value        || '—';
+                        const tv      = parseFloat(tonaseInput.value) || 0;
+                        const sv      = satuanSel.value;
+                        const tare    = (() => {
+                            const o = kendaraanSel.options[kendaraanSel.selectedIndex];
+                            return o ? parseInt(o.dataset.tare || '0', 10) : 0;
+                        })();
+                        const kotor  = sv === 'TON' ? tv * 1000 : tv;
+                        const bersih = kotor - tare;
+
+                        function baris(teks, pos, warna = '#e2e8f0', bold = false) {
+                            ctx.font      = (bold ? '700 ' : '500 ') + fs + 'px "JetBrains Mono", monospace';
+                            ctx.fillStyle = warna;
+                            ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 2;
+                            ctx.fillText(teks, pad, H + pad + pos * lineH);
+                            ctx.shadowBlur = 0;
+                        }
+                        baris('KANDANG KITA  |  ' + latLng,                        0, '#6ee7b7', true);
+                        baris('📅  ' + tsStr,                                       1, '#cbd5e1');
+                        baris('👤  ' + petugas + '   ' + jenis + '   ' + armada,   2, '#e2e8f0');
+                        baris('⚖  Kotor: ' + kotor.toLocaleString('id-ID') + ' KG  →  Netto: ' +
+                              (isNaN(bersih) ? '—' : bersih.toLocaleString('id-ID')) + ' KG',
+                              3, '#6ee7b7', true);
+
+                        const MAX_BYTES = 10 * 1024 * 1024;
+                        let quality = JPEG_QUALITY;
+                        (function tryEncode() {
+                            stampCanvas.toBlob((blob) => {
+                                if (!blob) { reject(new Error('toBlob gagal')); return; }
+                                if (blob.size <= MAX_BYTES || quality <= 0.30) {
+                                    // Simpan juga sebagai dataURL untuk localStorage
+                                    const dataUrl = stampCanvas.toDataURL('image/jpeg', quality);
+                                    resolve({ blob, dataUrl, isoTs });
+                                } else {
+                                    quality = Math.max(0.30, quality - 0.12);
+                                    tryEncode();
+                                }
+                            }, 'image/jpeg', quality);
+                        })();
+                    } catch (err) { reject(err); }
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // ── Proses stamp foto ────────────────────────────────────────────────
+    async function prosesStamp(file) {
+        showFotoWarning(null);
+        coordInfo.classList.add('hidden');
+        stampStatus.classList.remove('hidden');
+        stampStatusText.textContent = 'Memproses stamp metadata…';
+
+        const { valid, ageMen } = cekUmurFoto(file);
+        if (!valid) {
+            showFotoWarning('⚠ Foto ini tampaknya diambil ' + ageMen + ' menit yang lalu. Disarankan mengambil foto langsung dari kamera.');
+        }
+        try {
+            const result = await stampGambar(file);
+            stampedBlob = result.blob;
+            stampedB64  = result.dataUrl;
+            const url   = URL.createObjectURL(stampedBlob);
+            previewFoto.src = url;
+            previewWrap.classList.remove('hidden');
+            stampBadge.classList.remove('hidden');
+            stampStatus.classList.add('hidden');
+            if (gpsCoords) {
+                coordText.textContent = '📍 Lat: ' + gpsCoords.lat.toFixed(6) + '  Lng: ' + gpsCoords.lng.toFixed(6) + '  |  Akurasi: ±' + gpsCoords.acc + 'm';
+                coordInfo.classList.remove('hidden');
+            }
+        } catch (err) {
+            console.warn('Stamp gagal, pakai foto asli:', err);
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewFoto.src = e.target.result;
+                stampedB64 = e.target.result;
+            };
+            reader.readAsDataURL(file);
+            previewWrap.classList.remove('hidden');
+            stampBadge.classList.add('hidden');
+            stampStatus.classList.add('hidden');
+        }
+    }
+
+    function showFotoWarning(msg) {
+        if (msg) { fotoWarningText.textContent = msg; fotoWarning.classList.remove('hidden'); }
+        else      { fotoWarning.classList.add('hidden'); }
+    }
+
+    fotoInput.addEventListener('change', function () {
+        const file = this.files[0];
+        if (!file) { resetFoto(); return; }
+        originalFile = file;
+        fotoLabel.textContent = file.name;
+        prosesStamp(file);
+    });
+
+    btnHapusFoto.addEventListener('click', () => { fotoInput.value = ''; resetFoto(); });
+
+    function resetFoto() {
+        stampedBlob = null; originalFile = null; stampedB64 = null;
+        fotoLabel.textContent = 'Ambil Foto Kamera…';
+        previewWrap.classList.add('hidden');
+        coordInfo.classList.add('hidden');
+        fotoWarning.classList.add('hidden');
+        stampStatus.classList.add('hidden');
+        previewFoto.src = '';
+    }
+
+    // ── Beep sukses ──────────────────────────────────────────────────────
+    function playSuccessBeep() {
+        try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            const ctx = new AudioCtx();
+            const now = ctx.currentTime;
+            [880, 1320].forEach((freq, i) => {
+                const osc = ctx.createOscillator(); const gain = ctx.createGain();
+                osc.type = 'sine'; osc.frequency.value = freq;
+                const s = now + i * 0.12;
+                gain.gain.setValueAtTime(0.0001, s);
+                gain.gain.exponentialRampToValueAtTime(0.25, s + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.0001, s + 0.18);
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.start(s); osc.stop(s + 0.2);
+            });
+        } catch (_) {}
+    }
+
+    // ── Alert ────────────────────────────────────────────────────────────
+    function showAlert(msg, type) {
+        formAlert.textContent = msg;
+        formAlert.className = 'rounded-lg px-3.5 py-2.5 text-sm alert-enter';
+        if (type === 'error') {
+            formAlert.classList.add('bg-red-50','text-red-700','border','border-red-200');
+        } else {
+            formAlert.classList.add('bg-emerald-50','text-emerald-700','border','border-emerald-200');
+        }
+    }
+    function setLoading(v) {
+        btnSimpan.disabled = v;
+        btnSimpanText.textContent = v ? 'MENYIMPAN...' : 'SIMPAN DATA';
+    }
+
+    // ── Submit: simpan ke localStorage ───────────────────────────────────
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        formAlert.classList.add('hidden');
+
+        const tanggal          = tanggalInput.value.trim();
+        const nama_petugas     = petugasInput.value.trim();
+        const jenis_pengambilan= jenisSelect.value;
+        const jenis_kendaraan  = kendaraanSel.value;
+        const tonase_raw       = tonaseInput.value.trim();
+        const satuan           = satuanSel.value;
+        const jumlah_ember_raw = document.getElementById('jumlah_ember').value.trim();
+
+        // Validasi
+        if (!tanggal)              { showAlert('Tanggal pengambilan wajib diisi.', 'error'); return; }
+        if (!nama_petugas)         { showAlert('Nama petugas wajib diisi.', 'error'); return; }
+        if (!jenis_pengambilan)    { showAlert('Jenis pengambilan wajib dipilih.', 'error'); return; }
+        if (!jenis_kendaraan)      { showAlert('Jenis kendaraan wajib dipilih.', 'error'); return; }
+        if (!tonase_raw || isNaN(parseFloat(tonase_raw)) || parseFloat(tonase_raw) <= 0) {
+            showAlert('Tonase harus berupa angka lebih besar dari 0.', 'error'); return;
+        }
+
+        const opt      = kendaraanSel.options[kendaraanSel.selectedIndex];
+        const tare_kg  = parseInt(opt.dataset.tare || '0', 10);
+        const tonase   = parseFloat(tonase_raw);
+        const tonase_kotor_kg  = toKg(tonase, satuan);
+        const tonase_bersih_kg = tonase_kotor_kg - tare_kg;
+
+        if (tonase_bersih_kg <= 0) {
+            showAlert('Berat bersih KOHE tidak valid. Tonase kotor (' + fmtNum(tonase_kotor_kg, 2) + ' KG) harus lebih besar dari tare kendaraan (' + fmtNum(tare_kg, 0) + ' KG).', 'error');
+            return;
+        }
+
+        let jumlah_ember = null;
+        if (jumlah_ember_raw !== '') {
+            const je = parseInt(jumlah_ember_raw, 10);
+            if (isNaN(je) || je < 0) { showAlert('Jumlah ember harus bilangan bulat ≥ 0.', 'error'); return; }
+            jumlah_ember = je;
+        }
+
+        setLoading(true);
+
+        const now = new Date();
+        const created_at = now.getFullYear() + '-' +
+            String(now.getMonth()+1).padStart(2,'0') + '-' +
+            String(now.getDate()).padStart(2,'0') + ' ' +
+            String(now.getHours()).padStart(2,'0') + ':' +
+            String(now.getMinutes()).padStart(2,'0') + ':' +
+            String(now.getSeconds()).padStart(2,'0');
+
+        const record = {
+            id:                genId(),
+            tanggal,
+            nama_petugas,
+            jenis_pengambilan,
+            jenis_kendaraan,
+            berat_kendaraan_kg: tare_kg,
+            jumlah_ember,
+            tonase,
+            satuan,
+            tonase_kotor_kg,
+            tonase_bersih_kg,
+            foto:          stampedB64 ? 'foto_tersimpan' : null,
+            foto_data:     stampedB64 || null,
+            gps_lat:       gpsCoords ? gpsCoords.lat : null,
+            gps_lng:       gpsCoords ? gpsCoords.lng : null,
+            gps_acc:       gpsCoords ? gpsCoords.acc : null,
+            foto_stamped:  !!stampedBlob,
+            created_at,
+        };
+
+        const data = loadData();
+        data.unshift(record);
+        saveData(data);
+
+        setLoading(false);
+        playSuccessBeep();
+
+        modalSuksesMsg.textContent = 'Berat bersih KOHE: ' + fmtNum(tonase_bersih_kg, 2) + ' KG.' +
+            (jumlah_ember !== null ? ' Jumlah ember: ' + jumlah_ember + ' unit.' : '');
+        modalSukses.classList.remove('hidden');
+    });
+
+    btnTambahLagi.addEventListener('click', () => {
+        modalSukses.classList.add('hidden');
+        form.reset();
+        tanggalInput.value = todayStr;
+        resetFoto();
+        previewHitung.classList.add('hidden');
+        formAlert.classList.add('hidden');
+    });
+
+    // Inisialisasi
+    initGPS();
+})();
+</script>
+</body>
+</html>

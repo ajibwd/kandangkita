@@ -1,0 +1,17 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Uploads (foto lokal, tidak di-commit)
+uploads/*.jpg
+uploads/*.jpeg
+uploads/*.png
+uploads/*.webp
+
+# PHP backup (jika ada)
+*.php
+
+# Editor
+.vscode/
+*.swp

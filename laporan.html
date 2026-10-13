@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laporan &amp; Riwayat — KANDANG KITA</title>
+<link rel="icon" type="image/x-icon" href="assets/favicon_io/favicon.ico">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    body { font-family: 'Inter', sans-serif; }
+    .font-mono-num { font-family: 'JetBrains Mono', ui-monospace, monospace; font-feature-settings: "tnum"; }
+    ::-webkit-scrollbar { height: 8px; width: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    #kkLightbox { display:none; }
+    #kkLightbox.open { display:flex; }
+</style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 antialiased">
+
+<!-- Header -->
+<header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-20">
+    <div class="max-w-[1600px] mx-auto px-8 h-16 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="bg-white rounded-md px-2.5 py-1.5 shrink-0">
+                <img src="assets/header_2.png" alt="Kandang Kita" class="h-7 w-auto">
+            </div>
+            <div class="leading-tight hidden lg:block border-l border-slate-700 pl-3">
+                <p class="text-[11px] font-medium text-slate-300">Laporan &amp; Riwayat</p>
+                <p class="text-[11px] text-slate-500">Pengambilan KOHE</p>
+            </div>
+        </div>
+        <nav class="flex items-center gap-1 bg-slate-800 rounded-lg p-1 text-sm">
+            <a href="index.html"     class="px-3 py-1.5 rounded-md text-slate-300 hover:text-white hover:bg-slate-700 font-medium transition-colors">Input</a>
+            <a href="dashboard.html" class="px-3 py-1.5 rounded-md text-slate-300 hover:text-white hover:bg-slate-700 font-medium transition-colors">Dashboard</a>
+            <a href="laporan.html"   class="px-3 py-1.5 rounded-md bg-white text-slate-900 font-semibold">Laporan</a>
+        </nav>
+    </div>
+</header>
+
+<main class="max-w-[1600px] mx-auto px-8 py-8">
+
+    <!-- Ringkasan 4 kartu -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-5">
+        <div class="bg-white rounded-lg border border-slate-200 p-6">
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Jumlah Catatan</p>
+            <p id="statJumlah" class="font-mono-num text-4xl font-semibold text-slate-900 mt-3 tabular-nums">0</p>
+            <p id="statJumlahLabel" class="text-sm text-slate-500 mt-2">seluruh data</p>
+        </div>
+        <div class="bg-white rounded-lg border border-emerald-200 p-6">
+            <p class="text-[11px] font-medium text-emerald-600 uppercase tracking-wider">Total Bersih KOHE</p>
+            <p class="mt-3">
+                <span id="statBersih" class="font-mono-num text-4xl font-semibold text-emerald-700 tabular-nums">0</span>
+                <span class="text-base font-medium text-slate-400 ml-1.5">KG</span>
+            </p>
+            <p class="text-sm text-slate-500 mt-2">setelah dikurangi berat kendaraan</p>
+        </div>
+        <div class="bg-white rounded-lg border border-slate-200 p-6">
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Total Kotor Timbangan</p>
+            <p class="mt-3">
+                <span id="statKotor" class="font-mono-num text-4xl font-semibold text-slate-700 tabular-nums">0</span>
+                <span class="text-base font-medium text-slate-400 ml-1.5">KG</span>
+            </p>
+            <p class="text-sm text-slate-500 mt-2">sebelum dikurangi tare</p>
+        </div>
+        <div class="bg-white rounded-lg border border-slate-200 p-6 flex items-center justify-between gap-4">
+            <div>
+                <p class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Export &amp; Cetak</p>
+                <p class="text-sm text-slate-500 mt-2">Unduh sesuai filter aktif</p>
+            </div>
+            <div class="flex flex-col gap-2 shrink-0">
+                <button id="btnExportExcel"
+                    class="inline-flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-sm px-3.5 py-2 rounded-md transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                    Cetak / Excel
+                </button>
+                <button id="btnExportCsv"
+                    class="inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-800 text-white font-medium text-sm px-3.5 py-2 rounded-md transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Export CSV
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter -->
+    <div class="bg-white rounded-lg border border-slate-200 p-4 mb-5 grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
+        <div class="md:col-span-2">
+            <label class="block text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-1.5">Jenis Pengambilan</label>
+            <select id="filterJenis" class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-colors">
+                <option value="">Semua Jenis</option>
+                <option value="PAIL">PAIL</option>
+                <option value="Bersih Kandang">Bersih Kandang</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-1.5">Dari Tanggal</label>
+            <input type="date" id="filterDari" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-colors font-mono-num">
+        </div>
+        <div>
+            <label class="block text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-1.5">Sampai Tanggal</label>
+            <input type="date" id="filterSampai" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-colors font-mono-num">
+        </div>
+        <div class="flex gap-2">
+            <button id="btnTerapkan" class="flex-1 bg-slate-900 hover:bg-slate-800 text-white font-medium px-4 py-2 rounded-md text-sm transition-colors">Terapkan</button>
+            <button id="btnReset"    class="flex-1 text-center bg-white hover:bg-slate-50 text-slate-600 border border-slate-300 font-medium px-4 py-2 rounded-md text-sm transition-colors">Reset</button>
+        </div>
+    </div>
+
+    <!-- Tabel -->
+    <div class="bg-white rounded-lg border border-slate-200 overflow-hidden">
+        <div class="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between">
+            <h2 class="text-sm font-semibold text-slate-900">Tabel Rekapitulasi Data</h2>
+            <span id="rowCount" class="text-[11px] text-slate-400 font-mono-num">0 ROWS</span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-left text-slate-500 bg-slate-50 border-b border-slate-200 text-[11px] uppercase tracking-wider">
+                        <th class="px-4 py-2.5 font-medium w-12">No</th>
+                        <th class="px-4 py-2.5 font-medium">Tanggal</th>
+                        <th class="px-4 py-2.5 font-medium">Petugas</th>
+                        <th class="px-4 py-2.5 font-medium">Jenis Pengambilan</th>
+                        <th class="px-4 py-2.5 font-medium">Kendaraan</th>
+                        <th class="px-4 py-2.5 font-medium text-right">Ember</th>
+                        <th class="px-4 py-2.5 font-medium text-right">Kotor (KG)</th>
+                        <th class="px-4 py-2.5 font-medium text-right">Tare (KG)</th>
+                        <th class="px-4 py-2.5 font-medium text-right">Bersih KOHE (KG)</th>
+                        <th class="px-4 py-2.5 font-medium text-center">Foto</th>
+                        <th class="px-4 py-2.5 font-medium text-right">Waktu Input</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelBody" class="divide-y divide-slate-100">
+                    <tr><td colspan="11" class="px-4 py-12 text-center text-sm text-slate-400">Memuat data…</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer total -->
+        <div id="footerTotal" class="hidden px-5 py-3 border-t border-slate-200 bg-slate-50 flex flex-wrap gap-x-8 gap-y-1.5 text-xs">
+            <span class="text-slate-500">Total dari <span id="ftJumlah" class="font-semibold text-slate-800">0</span> catatan</span>
+            <span class="text-slate-500">Kotor: <span id="ftKotor" class="font-mono-num font-semibold text-slate-800">0</span> KG</span>
+            <span class="text-slate-500">Tare: <span id="ftTare" class="font-mono-num font-semibold text-slate-800">0</span> KG</span>
+            <span class="text-emerald-700 font-semibold">Bersih: <span id="ftBersih" class="font-mono-num">0</span> KG &nbsp;(<span id="ftBersihTon" class="font-mono-num">0</span> Ton)</span>
+        </div>
+    </div>
+
+    <!-- Hapus Semua -->
+    <div class="mt-6 flex justify-end">
+        <button id="btnHapusSemua" class="inline-flex items-center gap-2 bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 font-medium text-xs px-4 py-2 rounded-md transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>
+            Hapus Semua Data
+        </button>
+    </div>
+
+    <p class="text-center text-[10px] text-slate-400 font-mono-num mt-6">KANDANG KITA &middot; SISTEM PENCATATAN KOHE</p>
+</main>
+
+<!-- Lightbox foto -->
+<div id="kkLightbox" class="fixed inset-0 bg-slate-900/80 z-50 items-center justify-center px-4">
+    <div class="relative max-w-2xl w-full">
+        <button id="lbClose" class="absolute -top-10 right-0 text-white/70 hover:text-white text-sm font-medium">✕ Tutup</button>
+        <img id="lbImg" src="" alt="Foto dokumentasi" class="w-full rounded-lg max-h-[80vh] object-contain bg-slate-800">
+        <div id="lbInfo" class="mt-2 text-xs text-slate-300 font-mono-num text-center"></div>
+    </div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    const STORAGE_KEY = 'kandangkita_data';
+
+    function loadData() {
+        try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+        catch { return []; }
+    }
+    function saveData(arr) { localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
+
+    function fmt(num, des = 0) {
+        return new Intl.NumberFormat('id-ID', { minimumFractionDigits: des, maximumFractionDigits: des }).format(num);
+    }
+    function fmtTanggal(iso) {
+        if (!iso) return '—';
+        const [y, m, d] = iso.split('-');
+        return (d||'') + '-' + (m||'') + '-' + (y||'');
+    }
+    function esc(s) { const el = document.createElement('div'); el.textContent = s ?? ''; return el.innerHTML; }
+
+    // ── State filter ─────────────────────────────────────────────────────
+    let activeFilter = { jenis: '', dari: '', sampai: '' };
+    let filteredData = [];
+
+    // ── DOM refs ─────────────────────────────────────────────────────────
+    const filterJenis   = document.getElementById('filterJenis');
+    const filterDari    = document.getElementById('filterDari');
+    const filterSampai  = document.getElementById('filterSampai');
+    const btnTerapkan   = document.getElementById('btnTerapkan');
+    const btnReset      = document.getElementById('btnReset');
+    const btnExportCsv  = document.getElementById('btnExportCsv');
+    const btnExportExcel= document.getElementById('btnExportExcel');
+    const tabelBody     = document.getElementById('tabelBody');
+    const rowCount      = document.getElementById('rowCount');
+    const statJumlah    = document.getElementById('statJumlah');
+    const statJumlahLabel = document.getElementById('statJumlahLabel');
+    const statBersih    = document.getElementById('statBersih');
+    const statKotor     = document.getElementById('statKotor');
+    const footerTotal   = document.getElementById('footerTotal');
+    const ftJumlah      = document.getElementById('ftJumlah');
+    const ftKotor       = document.getElementById('ftKotor');
+    const ftTare        = document.getElementById('ftTare');
+    const ftBersih      = document.getElementById('ftBersih');
+    const ftBersihTon   = document.getElementById('ftBersihTon');
+    const btnHapusSemua = document.getElementById('btnHapusSemua');
+    const lightbox      = document.getElementById('kkLightbox');
+    const lbImg         = document.getElementById('lbImg');
+    const lbInfo        = document.getElementById('lbInfo');
+    const lbClose       = document.getElementById('lbClose');
+
+    // ── Render ────────────────────────────────────────────────────────────
+    function applyFilter(data) {
+        return data.filter(row => {
+            if (activeFilter.jenis && row.jenis_pengambilan !== activeFilter.jenis) return false;
+            const tgl = row.tanggal || '';
+            if (activeFilter.dari   && tgl < activeFilter.dari)   return false;
+            if (activeFilter.sampai && tgl > activeFilter.sampai) return false;
+            return true;
+        });
+    }
+
+    function render() {
+        const allData = loadData();
+        filteredData  = applyFilter(allData);
+
+        let totalBersih = 0, totalKotor = 0, totalTare = 0;
+        for (const r of filteredData) {
+            totalBersih += r.tonase_bersih_kg || 0;
+            totalKotor  += r.tonase_kotor_kg  || 0;
+            totalTare   += r.berat_kendaraan_kg || 0;
+        }
+
+        const isFiltered = activeFilter.jenis || activeFilter.dari || activeFilter.sampai;
+        statJumlah.textContent      = fmt(filteredData.length);
+        statJumlahLabel.textContent = isFiltered ? 'sesuai filter aktif' : 'seluruh data';
+        statJumlahLabel.className   = 'text-sm mt-2 ' + (isFiltered ? 'text-emerald-700 font-medium' : 'text-slate-500');
+        statBersih.textContent      = fmt(totalBersih);
+        statKotor.textContent       = fmt(totalKotor);
+        rowCount.textContent        = fmt(filteredData.length) + ' ROW' + (filteredData.length === 1 ? '' : 'S');
+
+        if (!filteredData.length) {
+            tabelBody.innerHTML = '<tr><td colspan="11" class="px-4 py-12 text-center text-sm text-slate-400">Tidak ada data' + (isFiltered ? ' sesuai filter yang diterapkan.' : '.') + '</td></tr>';
+            footerTotal.classList.add('hidden');
+            return;
+        }
+
+        tabelBody.innerHTML = filteredData.map((r, idx) => {
+            const fotoBtn = r.foto_data
+                ? `<button class="kk-foto-btn px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 hover:bg-emerald-50 border border-slate-200 text-slate-600 transition-colors" data-idx="${idx}">Lihat</button>`
+                : '<span class="text-slate-300 text-[11px]">—</span>';
+            return `<tr class="hover:bg-slate-50 transition-colors">
+                <td class="px-4 py-2.5 text-slate-400 font-mono-num text-xs">${String(idx+1).padStart(2,'0')}</td>
+                <td class="px-4 py-2.5 text-slate-600 font-mono-num text-xs">${esc(fmtTanggal(r.tanggal))}</td>
+                <td class="px-4 py-2.5 text-slate-800 font-medium text-xs">${esc(r.nama_petugas)}</td>
+                <td class="px-4 py-2.5 text-xs">
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded-sm bg-emerald-50 text-emerald-800 text-[10px] font-medium border border-emerald-200">${esc(r.jenis_pengambilan)}</span>
+                </td>
+                <td class="px-4 py-2.5 text-xs">
+                    ${r.jenis_kendaraan ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded-sm bg-slate-100 text-slate-600 text-[10px] font-medium border border-slate-200">${esc(r.jenis_kendaraan)}</span>` : '<span class="text-slate-300">—</span>'}
+                </td>
+                <td class="px-4 py-2.5 text-right font-mono-num text-slate-600 text-xs">${r.jumlah_ember !== null && r.jumlah_ember !== undefined ? fmt(r.jumlah_ember) : '<span class="text-slate-300">—</span>'}</td>
+                <td class="px-4 py-2.5 text-right font-mono-num text-slate-500 text-xs">${fmt(r.tonase_kotor_kg || 0)}</td>
+                <td class="px-4 py-2.5 text-right font-mono-num text-red-400 text-xs">${r.berat_kendaraan_kg ? '−' + fmt(r.berat_kendaraan_kg) : '—'}</td>
+                <td class="px-4 py-2.5 text-right font-mono-num font-semibold text-emerald-700 text-xs">${fmt(r.tonase_bersih_kg || 0)}</td>
+                <td class="px-4 py-2.5 text-center text-xs">${fotoBtn}</td>
+                <td class="px-4 py-2.5 text-right font-mono-num text-slate-400 text-[11px]">${esc((r.created_at||'').substring(0,16))}</td>
+            </tr>`;
+        }).join('');
+
+        // Footer total
+        ftJumlah.textContent    = fmt(filteredData.length);
+        ftKotor.textContent     = fmt(totalKotor);
+        ftTare.textContent      = fmt(totalTare);
+        ftBersih.textContent    = fmt(totalBersih);
+        ftBersihTon.textContent = (totalBersih / 1000).toFixed(3).replace('.', ',');
+        footerTotal.classList.remove('hidden');
+    }
+
+    // ── Filter events ─────────────────────────────────────────────────────
+    btnTerapkan.addEventListener('click', () => {
+        activeFilter = { jenis: filterJenis.value, dari: filterDari.value, sampai: filterSampai.value };
+        render();
+    });
+    btnReset.addEventListener('click', () => {
+        filterJenis.value = ''; filterDari.value = ''; filterSampai.value = '';
+        activeFilter = { jenis: '', dari: '', sampai: '' };
+        render();
+    });
+
+    // ── Lightbox ──────────────────────────────────────────────────────────
+    document.getElementById('tabelBody').addEventListener('click', (e) => {
+        const btn = e.target.closest('.kk-foto-btn');
+        if (!btn) return;
+        const idx = parseInt(btn.dataset.idx, 10);
+        const r   = filteredData[idx];
+        if (!r || !r.foto_data) return;
+        lbImg.src = r.foto_data;
+        lbInfo.textContent = r.gps_lat
+            ? '📍 ' + r.gps_lat.toFixed(6) + ', ' + r.gps_lng.toFixed(6) + ' ±' + r.gps_acc + 'm'
+            : '';
+        lightbox.classList.add('open');
+    });
+    lbClose.addEventListener('click', () => lightbox.classList.remove('open'));
+    lightbox.addEventListener('click', (e) => { if (e.target === lightbox) lightbox.classList.remove('open'); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') lightbox.classList.remove('open'); });
+
+    // ── Export CSV ───────────────────────────────────────────────────────
+    btnExportCsv.addEventListener('click', () => {
+        if (!filteredData.length) { alert('Tidak ada data untuk diekspor.'); return; }
+        const BOM = '\uFEFF';
+        const headers = ['No','Tanggal Pengambilan','Nama Petugas','Jenis Pengambilan','Kendaraan Pengangkut',
+            'Berat Tare Kendaraan (KG)','Jumlah Ember / Wadah PAIL','Tonase Input','Satuan Input',
+            'Berat Kotor (KG)','Berat Bersih KOHE (KG)','Waktu Input'];
+        const rows = filteredData.map((r, i) => [
+            i + 1,
+            fmtTanggal(r.tanggal),
+            r.nama_petugas || '',
+            r.jenis_pengambilan || '',
+            r.jenis_kendaraan || '-',
+            r.berat_kendaraan_kg || '-',
+            r.jumlah_ember !== null && r.jumlah_ember !== undefined ? r.jumlah_ember : '-',
+            r.tonase || 0,
+            r.satuan || '',
+            r.tonase_kotor_kg || 0,
+            r.tonase_bersih_kg || 0,
+            r.created_at || '',
+        ]);
+        const csvContent = BOM + [headers, ...rows].map(row =>
+            row.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')
+        ).join('\r\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        const now  = new Date();
+        const ts   = now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0') + '_' +
+                     String(now.getHours()).padStart(2,'0') + String(now.getMinutes()).padStart(2,'0') + String(now.getSeconds()).padStart(2,'0');
+        a.href = url; a.download = 'laporan_kohe_' + ts + '.csv';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+
+    // ── Export Excel (print-friendly HTML) ───────────────────────────────
+    btnExportExcel.addEventListener('click', () => {
+        if (!filteredData.length) { alert('Tidak ada data untuk diekspor.'); return; }
+        const now    = new Date();
+        const tanggalCetak = String(now.getDate()).padStart(2,'0') + '/' + String(now.getMonth()+1).padStart(2,'0') + '/' + now.getFullYear();
+
+        let totalKotor = 0, totalTare = 0, totalBersih = 0;
+        for (const r of filteredData) {
+            totalKotor  += r.tonase_kotor_kg  || 0;
+            totalTare   += r.berat_kendaraan_kg || 0;
+            totalBersih += r.tonase_bersih_kg || 0;
+        }
+
+        const rows = filteredData.map((r, i) => `
+            <tr>
+                <td style="text-align:center">${i + 1}</td>
+                <td>${fmtTanggal(r.tanggal)}</td>
+                <td>${r.nama_petugas || ''}</td>
+                <td style="text-align:center">${r.jenis_pengambilan || ''}</td>
+                <td style="text-align:center">${r.jumlah_ember !== null && r.jumlah_ember !== undefined ? r.jumlah_ember : '-'}</td>
+                <td>${r.jenis_kendaraan || '-'}</td>
+                <td style="text-align:right">${(r.tonase_kotor_kg||0).toLocaleString('id-ID',{minimumFractionDigits:0})}</td>
+                <td style="text-align:right">${(r.berat_kendaraan_kg||0).toLocaleString('id-ID',{minimumFractionDigits:0})}</td>
+                <td style="text-align:right;font-weight:600">${(r.tonase_bersih_kg||0).toLocaleString('id-ID',{minimumFractionDigits:0})}</td>
+                <td style="text-align:right">${((r.tonase_bersih_kg||0)/1000).toFixed(3)}</td>
+            </tr>`).join('');
+
+        const html = `<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8">
+            <title>Laporan KOHE — KANDANG KITA</title>
+            <style>
+                body{font-family:Arial,sans-serif;font-size:11px;margin:0;padding:20px;color:#1e293b}
+                h2{font-size:14px;margin-bottom:4px}
+                p{margin:2px 0;font-size:10px;color:#64748b}
+                table{width:100%;border-collapse:collapse;margin-top:16px;font-size:10px}
+                th{background:#0f172a;color:white;padding:6px 8px;text-align:left;font-weight:600}
+                td{border:1px solid #e2e8f0;padding:5px 8px}
+                tr:nth-child(even) td{background:#f8fafc}
+                .tfoot td{background:#f1f5f9;font-weight:700;border-top:2px solid #0f172a}
+                .ttd{font-size:10px;margin-top:40px;display:flex;gap:80px}
+                .ttd-item{text-align:center;min-width:160px}
+                .ttd-item .line{border-bottom:1px solid #1e293b;height:50px;margin-bottom:6px}
+                @media print{body{padding:0} .no-print{display:none}}
+            </style></head><body>
+            <div class="no-print" style="margin-bottom:16px;display:flex;gap:8px">
+                <button onclick="window.print()" style="background:#059669;color:white;padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:12px">🖨 Cetak</button>
+                <button onclick="window.close()" style="background:#f1f5f9;color:#334155;padding:8px 16px;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;font-size:12px">← Kembali</button>
+            </div>
+            <h2>LAPORAN PENGAMBILAN KOHE — KANDANG KITA</h2>
+            <p>Tanggal Cetak: ${tanggalCetak} &nbsp;|&nbsp; Jumlah Catatan: ${filteredData.length}</p>
+            <table>
+                <thead><tr>
+                    <th style="width:30px">No</th><th>Tanggal</th><th>Petugas</th>
+                    <th>Jenis</th><th>Pail</th><th>Armada</th>
+                    <th style="text-align:right">Kotor (KG)</th><th style="text-align:right">Tara (KG)</th>
+                    <th style="text-align:right">Netto (KG)</th><th style="text-align:right">Tonase (Ton)</th>
+                </tr></thead>
+                <tbody>${rows}</tbody>
+                <tfoot><tr class="tfoot">
+                    <td colspan="6" style="text-align:right">TOTAL</td>
+                    <td style="text-align:right">${totalKotor.toLocaleString('id-ID',{minimumFractionDigits:0})}</td>
+                    <td style="text-align:right">${totalTare.toLocaleString('id-ID',{minimumFractionDigits:0})}</td>
+                    <td style="text-align:right">${totalBersih.toLocaleString('id-ID',{minimumFractionDigits:0})}</td>
+                    <td style="text-align:right">${(totalBersih/1000).toFixed(3)}</td>
+                </tr></tfoot>
+            </table>
+            <div class="ttd">
+                <div class="ttd-item"><div class="line"></div><p>Petugas Lapangan</p></div>
+                <div class="ttd-item"><div class="line"></div><p>Pengawas / DLH Kab. Pasuruan</p></div>
+            </div>
+            </body></html>`;
+
+        const win = window.open('', '_blank');
+        if (win) { win.document.write(html); win.document.close(); }
+    });
+
+    // ── Hapus Semua Data ─────────────────────────────────────────────────
+    btnHapusSemua.addEventListener('click', () => {
+        const total = loadData().length;
+        if (!total) { alert('Tidak ada data untuk dihapus.'); return; }
+        if (!confirm('Anda akan menghapus ' + total + ' catatan secara permanen dari perangkat ini. Pastikan sudah dieksport terlebih dahulu!\n\nLanjutkan?')) return;
+        saveData([]);
+        render();
+    });
+
+    // Init
+    render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — KANDANG KITA</title>
+<link rel="icon" type="image/x-icon" href="assets/favicon_io/favicon.ico">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    body { font-family: 'Inter', sans-serif; }
+    .font-mono-num { font-family: 'JetBrains Mono', ui-monospace, monospace; font-feature-settings: "tnum"; }
+    .status-dot { position: relative; }
+    .status-dot::after {
+        content: ''; position: absolute; inset: 0; border-radius: 50%;
+        background: inherit; animation: ring 2s ease-out infinite;
+    }
+    @keyframes ring { 0%{opacity:.5;transform:scale(1)} 100%{opacity:0;transform:scale(2.4)} }
+    .row-enter { animation: rowEnter .5s ease-out; }
+    @keyframes rowEnter { 0%{background-color:rgba(4,120,87,.1)} 100%{background-color:transparent} }
+    ::-webkit-scrollbar{height:6px;width:6px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+</style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 antialiased">
+
+<!-- Header -->
+<header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-20">
+    <div class="max-w-[1600px] mx-auto px-6 h-14 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="bg-white rounded-md px-2 py-1 shrink-0">
+                <img src="assets/header_2.png" alt="Kandang Kita" class="h-6 w-auto">
+            </div>
+            <div class="leading-tight hidden lg:block border-l border-slate-700 pl-3">
+                <p class="text-[11px] font-medium text-slate-300">Dashboard Monitoring</p>
+                <p class="text-[11px] text-slate-500">Pencatatan Pengambilan KOHE</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2 text-xs text-slate-300">
+                <span class="relative w-1.5 h-1.5 rounded-full bg-emerald-500 status-dot"></span>
+                <span class="hidden sm:inline">Live &middot; <span id="refreshInterval" class="font-mono-num">5</span>s</span>
+            </div>
+            <div class="h-4 w-px bg-slate-700"></div>
+            <time id="clock" class="font-mono-num text-xs text-slate-200 tabular-nums">--:--:--</time>
+            <div class="h-4 w-px bg-slate-700"></div>
+            <nav class="flex items-center gap-1 bg-slate-800 rounded-lg p-1 text-sm">
+                <a href="index.html" class="px-3 py-1.5 rounded-md text-slate-300 hover:text-white hover:bg-slate-700 font-medium transition-colors">Input</a>
+                <a href="dashboard.html" class="px-3 py-1.5 rounded-md bg-white text-slate-900 font-semibold">Dashboard</a>
+                <a href="laporan.html" class="px-3 py-1.5 rounded-md text-slate-300 hover:text-white hover:bg-slate-700 font-medium transition-colors">Laporan</a>
+            </nav>
+        </div>
+    </div>
+</header>
+
+<main class="max-w-[1600px] mx-auto px-6 py-6 space-y-5">
+
+    <!-- Mini-Dashboard Hari Ini -->
+    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+        <div class="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                <h2 class="text-sm font-semibold text-slate-900">Dashboard Pengangkutan</h2>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-semibold uppercase tracking-wide">LANGSUNG</span>
+                <span id="hariIniLabel" class="text-[11px] text-slate-400 font-mono-num">Hari ini: —</span>
+            </div>
+        </div>
+        <div class="px-5 py-4">
+            <div class="grid grid-cols-3 gap-4 mb-4">
+                <div class="rounded-lg border border-slate-200 px-4 py-3 text-center">
+                    <p class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Jumlah RIT</p>
+                    <p id="todayCount" class="font-mono-num text-3xl font-semibold text-slate-900 tabular-nums">0</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5">rit hari ini</p>
+                </div>
+                <div class="rounded-lg border border-emerald-200 bg-emerald-50/40 px-4 py-3 text-center">
+                    <p class="text-[10px] font-semibold text-emerald-600 uppercase tracking-wider mb-1">Harian</p>
+                    <p id="todayTon" class="font-mono-num text-3xl font-semibold text-emerald-700 tabular-nums">0,000</p>
+                    <p class="text-[11px] text-emerald-500 mt-0.5">Ton bersih</p>
+                </div>
+                <div class="rounded-lg border border-amber-200 bg-amber-50/30 px-4 py-3 text-center">
+                    <p class="text-[10px] font-semibold text-amber-600 uppercase tracking-wider mb-1">Bulanan</p>
+                    <p id="monthTon" class="font-mono-num text-3xl font-semibold text-amber-600 tabular-nums">0,000</p>
+                    <p class="text-[11px] text-amber-500 mt-0.5">Ton bulan ini</p>
+                </div>
+            </div>
+            <div class="border-t border-slate-100 pt-3">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-semibold text-slate-700">Riwayat Input Hari Ini</span>
+                    <span id="todayCountBadge" class="text-[11px] text-slate-400 font-mono-num">0 pengangkutan</span>
+                </div>
+                <div id="todayTableWrap">
+                    <p class="text-center text-xs text-slate-400 py-4">Belum ada pengangkutan tercatat hari ini.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kartu Statistik Total -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="bg-white border border-slate-200 rounded-lg px-4 py-3.5">
+            <p class="text-[10px] font-medium text-slate-500 uppercase tracking-wider mb-1">Total Transaksi</p>
+            <p id="statTotalTransaksi" class="font-mono-num text-2xl font-semibold text-slate-900 tabular-nums">0</p>
+            <p class="text-[11px] text-slate-400 mt-1">catatan pengambilan</p>
+        </div>
+        <div class="bg-white border border-emerald-200 rounded-lg px-4 py-3.5">
+            <p class="text-[10px] font-medium text-emerald-600 uppercase tracking-wider mb-1">Total Bersih KOHE</p>
+            <p class="font-mono-num text-2xl font-semibold tabular-nums">
+                <span id="statTotalBersih" class="text-emerald-700">0</span>
+                <span class="text-sm font-normal text-slate-400 ml-1">KG</span>
+            </p>
+            <p class="text-[11px] text-slate-400 mt-1">setelah dikurangi berat kendaraan</p>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-lg px-4 py-3.5">
+            <p class="text-[10px] font-medium text-slate-500 uppercase tracking-wider mb-1">Total Kotor / Tare</p>
+            <p class="font-mono-num text-xl font-semibold text-slate-700 tabular-nums">
+                <span id="statTotalKotor">0</span>
+                <span class="text-xs font-normal text-slate-400 ml-1">KG kotor</span>
+            </p>
+            <p class="font-mono-num text-xs text-slate-500 mt-0.5">
+                &minus; <span id="statTotalTare">0</span>
+                <span class="text-[10px] text-slate-400 ml-0.5">KG tare</span>
+            </p>
+            <p class="text-[11px] text-slate-400 mt-1">timbangan kotor vs kendaraan</p>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-lg px-4 py-3.5">
+            <p class="text-[10px] font-medium text-slate-500 uppercase tracking-wider mb-1">Total Ember / Wadah</p>
+            <p class="font-mono-num text-2xl font-semibold tabular-nums">
+                <span id="statTotalEmber" class="text-slate-900">0</span>
+                <span class="text-sm font-normal text-slate-400 ml-1">unit</span>
+            </p>
+            <p class="text-[11px] text-slate-400 mt-1">akumulasi wadah PAIL tercatat</p>
+        </div>
+    </div>
+
+    <!-- Breakdown + Grafik -->
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-5">
+        <div class="lg:col-span-2 grid grid-cols-1 gap-3">
+            <div class="bg-white border border-slate-200 rounded-lg px-4 py-3.5 flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] font-medium text-slate-500 uppercase tracking-wider">PAIL</p>
+                    <p class="font-mono-num text-xl font-semibold text-emerald-700 mt-1 tabular-nums">
+                        <span id="statPail">0</span>
+                        <span class="text-xs text-slate-400 font-sans font-normal">KG bersih</span>
+                    </p>
+                </div>
+                <span class="w-1 h-8 rounded-full bg-emerald-200"></span>
+            </div>
+            <div class="bg-white border border-slate-200 rounded-lg px-4 py-3.5 flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] font-medium text-slate-500 uppercase tracking-wider">Bersih Kandang</p>
+                    <p class="font-mono-num text-xl font-semibold text-emerald-700 mt-1 tabular-nums">
+                        <span id="statBersihKandang">0</span>
+                        <span class="text-xs text-slate-400 font-sans font-normal">KG bersih</span>
+                    </p>
+                </div>
+                <span class="w-1 h-8 rounded-full bg-emerald-200"></span>
+            </div>
+        </div>
+        <div class="lg:col-span-3 grid grid-cols-1 gap-4">
+            <div class="bg-white border border-slate-200 rounded-lg px-4 py-3.5">
+                <div class="flex items-center justify-between mb-3">
+                    <p class="text-xs font-semibold text-slate-700">Pengangkutan Harian (Ton)</p>
+                    <span class="text-[10px] text-slate-400 font-mono-num">14 hari terakhir</span>
+                </div>
+                <canvas id="chartHarian" height="90"></canvas>
+            </div>
+            <div class="bg-white border border-slate-200 rounded-lg px-4 py-3.5">
+                <div class="flex items-center justify-between mb-3">
+                    <p class="text-xs font-semibold text-slate-700">Pengangkutan Bulanan (Ton)</p>
+                    <span class="text-[10px] text-slate-400 font-mono-num">6 bulan terakhir</span>
+                </div>
+                <canvas id="chartBulanan" height="90"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Log 10 Terakhir -->
+    <div class="bg-white border border-slate-200 rounded-lg overflow-hidden">
+        <div class="px-5 py-3 border-b border-slate-200 flex items-center justify-between">
+            <h2 class="text-sm font-semibold text-slate-900">Log Aktivitas Terbaru</h2>
+            <span class="text-[10px] text-slate-400 font-mono-num">LIMIT 10</span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+                <thead>
+                    <tr class="text-left text-slate-500 bg-slate-50 border-b border-slate-200 text-[10px] uppercase tracking-wider">
+                        <th class="px-4 py-2 font-medium w-10">No</th>
+                        <th class="px-4 py-2 font-medium">Tanggal</th>
+                        <th class="px-4 py-2 font-medium">Petugas</th>
+                        <th class="px-4 py-2 font-medium">Jenis / Armada</th>
+                        <th class="px-4 py-2 font-medium text-right">Ember</th>
+                        <th class="px-4 py-2 font-medium text-right">Kotor</th>
+                        <th class="px-4 py-2 font-medium text-right">Tare</th>
+                        <th class="px-4 py-2 font-medium text-right">Bersih</th>
+                        <th class="px-4 py-2 font-medium text-right">Waktu</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelLogBody" class="divide-y divide-slate-100">
+                    <tr><td colspan="9" class="px-4 py-12 text-center text-xs text-slate-400">Memuat data…</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <p class="text-center text-[10px] text-slate-400 font-mono-num">KANDANG KITA &middot; SISTEM MONITORING KOHE</p>
+</main>
+
+<script>
+(function () {
+    'use strict';
+
+    const STORAGE_KEY = 'kandangkita_data';
+    const REFRESH_MS  = 5000;
+
+    const BULAN_ID = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
+
+    function loadData() {
+        try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+        catch { return []; }
+    }
+    function fmt(num, des = 0) {
+        return new Intl.NumberFormat('id-ID', { minimumFractionDigits: des, maximumFractionDigits: des }).format(num);
+    }
+    function fmtTon(kg) {
+        return (kg / 1000).toFixed(3).replace('.', ',');
+    }
+    function padNo(n) { return String(n).padStart(2, '0'); }
+    function esc(s) { const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; }
+    function fmtTanggal(iso) {
+        if (!iso) return '—';
+        const [y,m,d] = iso.split('-');
+        return (d||'') + '-' + (m||'') + '-' + (y||'');
+    }
+
+    // ── DOM refs ─────────────────────────────────────────────────────────
+    const clockEl             = document.getElementById('clock');
+    const hariIniLabel        = document.getElementById('hariIniLabel');
+    const statTotalTransaksi  = document.getElementById('statTotalTransaksi');
+    const statTotalBersih     = document.getElementById('statTotalBersih');
+    const statTotalKotor      = document.getElementById('statTotalKotor');
+    const statTotalTare       = document.getElementById('statTotalTare');
+    const statTotalEmber      = document.getElementById('statTotalEmber');
+    const statPail            = document.getElementById('statPail');
+    const statBersihKandang   = document.getElementById('statBersihKandang');
+    const tabelLogBody        = document.getElementById('tabelLogBody');
+    const todayCountEl        = document.getElementById('todayCount');
+    const todayCountBadge     = document.getElementById('todayCountBadge');
+    const todayTonEl          = document.getElementById('todayTon');
+    const monthTonEl          = document.getElementById('monthTon');
+    const todayTableWrap      = document.getElementById('todayTableWrap');
+
+    document.getElementById('refreshInterval').textContent = Math.round(REFRESH_MS / 1000);
+
+    // ── Clock ─────────────────────────────────────────────────────────────
+    function tickClock() { clockEl.textContent = new Date().toLocaleTimeString('id-ID', { hour12: false }); }
+    setInterval(tickClock, 1000); tickClock();
+
+    // ── Chart.js setup ────────────────────────────────────────────────────
+    const chartDefaults = {
+        responsive: true, maintainAspectRatio: true,
+        plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: ctx => ' ' + ctx.parsed.y.toFixed(3) + ' Ton' } }
+        },
+        scales: {
+            x: { grid: { display: false }, ticks: { font: { size: 9, family: "'JetBrains Mono', monospace" }, color: '#94a3b8' } },
+            y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 9 }, color: '#94a3b8' }, beginAtZero: true }
+        }
+    };
+    const chartHarian = new Chart(document.getElementById('chartHarian'), {
+        type: 'bar',
+        data: {
+            labels: Array(14).fill(''),
+            datasets: [{ data: Array(14).fill(0), backgroundColor: 'rgba(4,120,87,0.15)', borderColor: '#059669', borderWidth: 1.5, borderRadius: 3 }]
+        },
+        options: { ...chartDefaults }
+    });
+    const chartBulanan = new Chart(document.getElementById('chartBulanan'), {
+        type: 'bar',
+        data: {
+            labels: Array(6).fill(''),
+            datasets: [{ data: Array(6).fill(0), backgroundColor: 'rgba(2,132,199,0.15)', borderColor: '#0284c7', borderWidth: 1.5, borderRadius: 3 }]
+        },
+        options: { ...chartDefaults }
+    });
+
+    // ── Hitung stats dari data localStorage ──────────────────────────────
+    function computeStats(data) {
+        const now         = new Date();
+        const todayStr    = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+        const monthPrefix = todayStr.substring(0, 7);
+
+        let totalTransaksi = 0, totalBersihKg = 0, totalKotorKg = 0, totalTareKg = 0, totalEmber = 0;
+        let pailKg = 0, bersihKandangKg = 0;
+        let todayCount = 0, todayBersih = 0, monthBersih = 0;
+        const todayRows = [];
+
+        for (const row of data) {
+            const b = row.tonase_bersih_kg || 0;
+            const k = row.tonase_kotor_kg  || row.tonase_kg || 0;
+            const t = row.berat_kendaraan_kg || 0;
+            totalTransaksi++;
+            totalBersihKg += b;
+            totalKotorKg  += k;
+            totalTareKg   += t;
+            totalEmber    += row.jumlah_ember || 0;
+            if (row.jenis_pengambilan === 'PAIL')           pailKg += b;
+            if (row.jenis_pengambilan === 'Bersih Kandang') bersihKandangKg += b;
+            if ((row.tanggal || '') === todayStr) { todayCount++; todayBersih += b; todayRows.push(row); }
+            if ((row.tanggal || '').startsWith(monthPrefix)) monthBersih += b;
+        }
+
+        // Grafik harian: 14 hari terakhir
+        const dailyMap = {};
+        for (let i = 13; i >= 0; i--) {
+            const d = new Date(now); d.setDate(d.getDate() - i);
+            const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+            dailyMap[key] = 0;
+        }
+        for (const row of data) {
+            if (dailyMap.hasOwnProperty(row.tanggal)) dailyMap[row.tanggal] += (row.tonase_bersih_kg || 0);
+        }
+        const dailyLabels = Object.keys(dailyMap).map(d => { const [,m,dd] = d.split('-'); return dd + '/' + m; });
+        const dailyValues = Object.values(dailyMap).map(v => parseFloat((v/1000).toFixed(4)));
+
+        // Grafik bulanan: 6 bulan terakhir
+        const monthlyMap = {};
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+            monthlyMap[key] = 0;
+        }
+        for (const row of data) {
+            const m = (row.tanggal || '').substring(0, 7);
+            if (monthlyMap.hasOwnProperty(m)) monthlyMap[m] += (row.tonase_bersih_kg || 0);
+        }
+        const monthlyLabels = Object.keys(monthlyMap).map(k => {
+            const [y, mo] = k.split('-');
+            return BULAN_ID[parseInt(mo,10) - 1] + ' ' + String(y).substring(2);
+        });
+        const monthlyValues = Object.values(monthlyMap).map(v => parseFloat((v/1000).toFixed(4)));
+
+        return {
+            totalTransaksi, totalBersihKg, totalKotorKg, totalTareKg, totalEmber,
+            pailKg, bersihKandangKg,
+            todayStr, todayCount, todayBersih, monthBersih, todayRows,
+            dailyLabels, dailyValues, monthlyLabels, monthlyValues,
+        };
+    }
+
+    // ── Render tabel today ─────────────────────────────────────────────
+    function renderToday(s) {
+        const d = new Date();
+        hariIniLabel.textContent = 'Hari ini: ' + String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + d.getFullYear();
+        todayCountEl.textContent    = fmt(s.todayCount);
+        todayCountBadge.textContent = s.todayCount + ' pengangkutan';
+        todayTonEl.textContent      = fmtTon(s.todayBersih);
+        monthTonEl.textContent      = fmtTon(s.monthBersih);
+
+        if (!s.todayRows.length) {
+            todayTableWrap.innerHTML = '<p class="text-center text-xs text-slate-400 py-4">Belum ada pengangkutan tercatat hari ini.</p>';
+            return;
+        }
+        const rows = s.todayRows.map(r => {
+            const waktu = (r.created_at || '').substring(11, 16);
+            return `<tr class="hover:bg-slate-50 transition-colors">
+                <td class="py-1.5 pr-3 font-mono-num text-slate-500">${esc(waktu)}</td>
+                <td class="py-1.5 pr-3 text-slate-700 font-medium">${esc(r.nama_petugas)}</td>
+                <td class="py-1.5 pr-3"><span class="inline-flex items-center px-1.5 py-0.5 rounded-sm bg-emerald-50 text-emerald-700 text-[10px] font-medium border border-emerald-200">${esc(r.jenis_pengambilan)}</span></td>
+                <td class="py-1.5 pr-3 text-slate-500">${esc(r.jenis_kendaraan || '—')}</td>
+                <td class="py-1.5 pr-3 text-right font-mono-num text-slate-600">${r.jumlah_ember !== null && r.jumlah_ember !== undefined ? r.jumlah_ember : '—'}</td>
+                <td class="py-1.5 text-right font-mono-num font-semibold text-emerald-700">${fmt(r.tonase_bersih_kg, 0)}</td>
+            </tr>`;
+        }).join('');
+        todayTableWrap.innerHTML = `<div class="overflow-x-auto"><table class="w-full text-xs">
+            <thead><tr class="text-left text-[10px] text-slate-500 uppercase tracking-wider border-b border-slate-100">
+                <th class="pb-1.5 pr-3 font-medium">Waktu</th>
+                <th class="pb-1.5 pr-3 font-medium">Petugas</th>
+                <th class="pb-1.5 pr-3 font-medium">Jenis</th>
+                <th class="pb-1.5 pr-3 font-medium">Armada</th>
+                <th class="pb-1.5 pr-3 font-medium text-right">Ember</th>
+                <th class="pb-1.5 font-medium text-right">Netto (KG)</th>
+            </tr></thead><tbody class="divide-y divide-slate-50">${rows}</tbody></table></div>`;
+    }
+
+    // ── Render log 10 terakhir ────────────────────────────────────────────
+    function renderLog(data) {
+        const recent = data.slice(0, 10);
+        if (!recent.length) {
+            tabelLogBody.innerHTML = '<tr><td colspan="9" class="px-4 py-12 text-center text-xs text-slate-400">Belum ada aktivitas tercatat.</td></tr>';
+            return;
+        }
+        tabelLogBody.innerHTML = recent.map((r, idx) => {
+            const badgeK = `<span class="inline-flex items-center px-1.5 py-0.5 rounded-sm bg-emerald-50 text-emerald-800 text-[10px] font-medium border border-emerald-200">${esc(r.jenis_pengambilan)}</span>`;
+            const badgeV = r.jenis_kendaraan ? ` <span class="inline-flex items-center px-1.5 py-0.5 rounded-sm bg-slate-100 text-slate-600 text-[10px] font-medium border border-slate-200">${esc(r.jenis_kendaraan)}</span>` : '';
+            const tare   = r.berat_kendaraan_kg ? `<span class="text-red-400">−${fmt(r.berat_kendaraan_kg, 0)}</span>` : '—';
+            const ember  = r.jumlah_ember !== null && r.jumlah_ember !== undefined ? `<span class="font-mono-num text-slate-600">${fmt(r.jumlah_ember, 0)}</span>` : '<span class="text-slate-300">—</span>';
+            const cls    = idx === 0 ? 'hover:bg-slate-50 transition-colors row-enter' : 'hover:bg-slate-50 transition-colors';
+            return `<tr class="${cls}">
+                <td class="px-4 py-2.5 text-slate-400 font-mono-num">${padNo(idx+1)}</td>
+                <td class="px-4 py-2.5 text-slate-600 font-mono-num">${esc(fmtTanggal(r.tanggal))}</td>
+                <td class="px-4 py-2.5 text-slate-800 font-medium">${esc(r.nama_petugas)}</td>
+                <td class="px-4 py-2.5">${badgeK}${badgeV}</td>
+                <td class="px-4 py-2.5 text-right">${ember}</td>
+                <td class="px-4 py-2.5 text-right font-mono-num text-slate-500">${fmt(r.tonase_kotor_kg || 0, 0)}</td>
+                <td class="px-4 py-2.5 text-right font-mono-num">${tare}</td>
+                <td class="px-4 py-2.5 text-right font-mono-num font-semibold text-emerald-700">${fmt(r.tonase_bersih_kg, 0)} <span class="text-slate-400 font-normal">KG</span></td>
+                <td class="px-4 py-2.5 text-right font-mono-num text-slate-400">${esc((r.created_at||'').substring(0,16))}</td>
+            </tr>`;
+        }).join('');
+    }
+
+    // ── Refresh dashboard dari localStorage ──────────────────────────────
+    function refreshDashboard() {
+        const data = loadData();
+        const s    = computeStats(data);
+
+        statTotalTransaksi.textContent = fmt(s.totalTransaksi);
+        statTotalBersih.textContent    = fmt(s.totalBersihKg);
+        statTotalKotor.textContent     = fmt(s.totalKotorKg);
+        statTotalTare.textContent      = fmt(s.totalTareKg);
+        statTotalEmber.textContent     = fmt(s.totalEmber);
+        statPail.textContent           = fmt(s.pailKg);
+        statBersihKandang.textContent  = fmt(s.bersihKandangKg);
+
+        renderToday(s);
+        renderLog(data);
+
+        chartHarian.data.labels            = s.dailyLabels;
+        chartHarian.data.datasets[0].data  = s.dailyValues;
+        chartHarian.update('none');
+        chartBulanan.data.labels           = s.monthlyLabels;
+        chartBulanan.data.datasets[0].data = s.monthlyValues;
+        chartBulanan.update('none');
+    }
+
+    refreshDashboard();
+    setInterval(refreshDashboard, REFRESH_MS);
+})();
+</script>
+</body>
+</html>
